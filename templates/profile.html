@@ -1,0 +1,19 @@
+{% extends 'layout.html' %}
+{% block title %}Профиль{% endblock %}
+{% block content %}
+<h2>Профиль</h2>
+<div class="card" style="max-width: 400px;">
+  {% if user.photo %}
+  <img src="{{ url_for('uploaded_file', filename=user.photo) }}" class="card-img-top" alt="Фото">
+  {% endif %}
+  <div class="card-body">
+    <h5 class="card-title">{{ user.first_name }} {{ user.last_name }}</h5>
+    <p class="card-text">
+      Возраст: {{ user.age }}<br>
+      Пол: {{ user.gender }}<br>
+      Роль: {{ user.role }}<br>
+      Email: {{ user.email }}
+    </p>
+  </div>
+</div>
+{% endblock %}

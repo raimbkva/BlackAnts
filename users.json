@@ -1,0 +1,26 @@
+[
+  {
+    "first_name": "Эдилбек ",
+    "last_name": "Ахунбаев ",
+    "age": "20",
+    "gender": "мужской",
+    "role": "работодатель",
+    "location": "Кант",
+    "salary": "2000",
+    "email": "edilakhunbaev175@gmail.com",
+    "password": "1",
+    "photo": null
+  },
+  {
+    "first_name": "Елизавета",
+    "last_name": "Ахунбаев ",
+    "age": "20",
+    "gender": "женский",
+    "role": "соискатель",
+    "location": "Кант",
+    "salary": "2000",
+    "email": "edilbekahunbaev175@gmail.com",
+    "password": "2",
+    "photo": null
+  }
+]

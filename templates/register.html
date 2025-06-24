@@ -1,0 +1,24 @@
+{% extends 'layout.html' %}
+{% block title %}Регистрация{% endblock %}
+{% block content %}
+<h2>Регистрация</h2>
+<form method="post" enctype="multipart/form-data">
+  <input class="form-control mb-2" name="first_name" placeholder="Имя" required>
+  <input class="form-control mb-2" name="last_name" placeholder="Фамилия" required>
+  <input class="form-control mb-2" name="age" placeholder="Возраст" required>
+  <select class="form-control mb-2" name="gender">
+    <option value="мужской">Мужской</option>
+    <option value="женский">Женский</option>
+  </select>
+  <select class="form-control mb-2" name="role">
+    <option value="соискатель">Соискатель</option>
+    <option value="работодатель">Работодатель</option>
+  </select>
+  <input class="form-control mb-2" name="location" placeholder="Место">
+  <input class="form-control mb-2" name="salary" placeholder="Желаемая зарплата">
+  <input class="form-control mb-2" name="email" placeholder="Email" required>
+  <input type="password" class="form-control mb-2" name="password" placeholder="Пароль" required>
+  <input type="file" class="form-control mb-2" name="photo">
+  <button class="btn btn-primary">Зарегистрироваться</button>
+</form>
+{% endblock %}

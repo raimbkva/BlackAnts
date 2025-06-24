@@ -1,0 +1,23 @@
+{% extends 'layout.html' %}
+{% block title %}Главная{% endblock %}
+{% block content %}
+<h2>Вакансии</h2>
+<form method="get" class="mb-3">
+  <input type="text" name="q" placeholder="Поиск по месту" class="form-control">
+</form>
+<div class="row">
+{% for v in vacancies %}
+  <div class="col-md-4">
+    <div class="card">
+      {% if v.photo %}
+      <img src="{{ url_for('uploaded_file', filename=v.photo) }}" class="card-img-top" alt="Фото">
+      {% endif %}
+      <div class="card-body">
+        <h5 class="card-title">{{ v.first_name }} {{ v.last_name }}</h5>
+        <p class="card-text">{{ v.location }}<br>{{ v.salary }} сом/день</p>
+      </div>
+    </div>
+  </div>
+{% endfor %}
+</div>
+{% endblock %}
