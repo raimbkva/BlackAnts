@@ -64,25 +64,27 @@ def register():
             return redirect(url_for('profile'))
         except sqlite3.IntegrityError:
             error = "Пользователь с таким email уже существует"
-            return render_template('register.html', error=error)
+            return render_template('register.html', error=error, form=data)
         except Exception as e:
             error = f"Ошибка регистрации: {e}"
-            return render_template('register.html', error=error)
-    return render_template('register.html')
+            return render_template('register.html', error=error, form=data)
+    return render_template('register.html', form={})
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     error = None
+    email = ''
     if request.method == 'POST':
+        email = request.form.get('email', '')
         conn = get_db()
-        user = conn.execute('SELECT * FROM users WHERE email = ?', (request.form['email'],)).fetchone()
+        user = conn.execute('SELECT * FROM users WHERE email = ?', (email,)).fetchone()
         conn.close()
         if user and check_password_hash(user['password'], request.form['password']):
             session['user'] = dict(user)
             return redirect(url_for('profile'))
         else:
             error = "Неверный email или пароль"
-    return render_template('login.html', error=error)
+    return render_template('login.html', error=error, email=email)
 
 @app.route('/logout')
 def logout():
