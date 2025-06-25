@@ -1,19 +1,23 @@
-{% extends 'layout.html' %}
-{% block title %}Профиль{% endblock %}
-{% block content %}
-<h2>Профиль</h2>
-<div class="card" style="max-width: 400px;">
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Профиль</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container py-5">
+  <h2>Профиль {{ user.first_name }} {{ user.last_name }}</h2>
   {% if user.photo %}
-  <img src="{{ url_for('uploaded_file', filename=user.photo) }}" class="card-img-top" alt="Фото">
+    <img src="{{ url_for('uploaded_file', filename=user.photo) }}" height="100" alt="Фото">
   {% endif %}
-  <div class="card-body">
-    <h5 class="card-title">{{ user.first_name }} {{ user.last_name }}</h5>
-    <p class="card-text">
-      Возраст: {{ user.age }}<br>
-      Пол: {{ user.gender }}<br>
-      Роль: {{ user.role }}<br>
-      Email: {{ user.email }}
-    </p>
-  </div>
+  <p>Email: {{ user.email }}</p>
+  <p>Город: {{ user.location }}</p>
+  <p>Зарплата: {{ user.salary }}</p>
+  <p>Возраст: {{ user.age }}</p>
+  <p>Пол: {{ user.gender }}</p>
+  <p>Роль: {{ user.role }}</p>
+  <a href="{{ url_for('logout') }}" class="btn btn-danger">Выйти</a>
 </div>
-{% endblock %}
+</body>
+</html>
