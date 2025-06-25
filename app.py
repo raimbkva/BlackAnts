@@ -92,12 +92,27 @@ def profile():
         return redirect(url_for('login'))
     conn = get_db()
     user_id = session['user']['id']
+
     if session['user']['role'] == 'работодатель':
-        applications = conn.execute('SELECT * FROM messages WHERE receiver_id = ?', (user_id,)).fetchall()
+        applications = conn.execute('''
+            SELECT m.*, u.first_name, u.last_name 
+            FROM messages m
+            JOIN users u ON m.sender_id = u.id
+            WHERE m.receiver_id = ?
+            ORDER BY m.timestamp DESC
+        ''', (user_id,)).fetchall()
     else:
-        applications = conn.execute('SELECT * FROM messages WHERE sender_id = ?', (user_id,)).fetchall()
+        applications = conn.execute('''
+            SELECT m.*, u.first_name, u.last_name 
+            FROM messages m
+            JOIN users u ON m.receiver_id = u.id
+            WHERE m.sender_id = ?
+            ORDER BY m.timestamp DESC
+        ''', (user_id,)).fetchall()
+
     conn.close()
     return render_template('profile.html', user=session['user'], applications=applications)
+
 
 @app.route('/add-vacancy', methods=['GET', 'POST'])
 def add_vacancy():
