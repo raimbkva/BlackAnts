@@ -47,20 +47,28 @@ def register():
         filename = None
         if photo and allowed_file(photo.filename):
             filename = secure_filename(photo.filename)
+            os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)  # Создать папку, если нет
             photo.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-
-        conn = get_db()
-        conn.execute(
-            "INSERT INTO users (first_name, last_name, age, gender, role, location, salary, email, password, photo) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            (data['first_name'], data['last_name'], data['age'], data['gender'], data['role'],
-             data.get('location'), data.get('salary'), data['email'], data['password'], filename))
-        conn.commit()
-        conn.close()
-        return redirect(url_for('login'))
+        try:
+            conn = get_db()
+            conn.execute(
+                "INSERT INTO users (first_name, last_name, age, gender, role, location, salary, email, password, photo) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (data['first_name'], data['last_name'], data['age'], data['gender'], data['role'],
+                 data.get('location'), data.get('salary'), data['email'], data['password'], filename))
+            conn.commit()
+            conn.close()
+            return redirect(url_for('login'))
+        except sqlite3.IntegrityError:
+            error = "Пользователь с таким email уже существует"
+            return render_template('register.html', error=error)
+        except Exception as e:
+            error = f"Ошибка регистрации: {e}"
+            return render_template('register.html', error=error)
     return render_template('register.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    error = None
     if request.method == 'POST':
         conn = get_db()
         user = conn.execute('SELECT * FROM users WHERE email = ? AND password = ?',
@@ -69,7 +77,9 @@ def login():
         if user:
             session['user'] = dict(user)
             return redirect(url_for('profile'))
-    return render_template('login.html')
+        else:
+            error = "Неверный email или пароль"
+    return render_template('login.html', error=error)
 
 @app.route('/logout')
 def logout():
@@ -115,8 +125,8 @@ def chat(receiver_id):
         conn.execute('INSERT INTO messages (sender_id, receiver_id, text) VALUES (?, ?, ?)',
                      (session['user']['id'], receiver_id, text))
         conn.commit()
-    messages = conn.execute('''SELECT sender_id, text, timestamp FROM messages \
-                               WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?) \
+    messages = conn.execute('''SELECT sender_id, text, timestamp FROM messages 
+                               WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?) 
                                ORDER BY timestamp''',
                             (session['user']['id'], receiver_id, receiver_id, session['user']['id'])).fetchall()
     user = conn.execute('SELECT first_name, last_name FROM users WHERE id = ?', (receiver_id,)).fetchone()

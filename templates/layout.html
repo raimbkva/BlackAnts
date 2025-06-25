@@ -9,18 +9,25 @@
 <body>
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <div class="container">
-    <a class="navbar-brand" href="/">BlackAnts</a>
-    <div>
+    <a class="navbar-brand" href="{{ url_for('index') }}">BlackAnts</a>
+
+    <div class="d-flex">
+      <a href="{{ url_for('index') }}" class="btn btn-outline-light btn-sm me-2">Главная</a>
+
       {% if session.user %}
-        <a href="/profile" class="btn btn-outline-light btn-sm">Профиль</a>
-        <a href="/logout" class="btn btn-outline-light btn-sm">Выйти</a>
+        {% if session.user.role == 'работодатель' %}
+          <a href="{{ url_for('add_vacancy') }}" class="btn btn-outline-light btn-sm me-2">Добавить вакансию</a>
+        {% endif %}
+        <a href="{{ url_for('profile') }}" class="btn btn-outline-light btn-sm me-2">Профиль</a>
+        <a href="{{ url_for('logout') }}" class="btn btn-outline-light btn-sm">Выйти</a>
       {% else %}
-        <a href="/login" class="btn btn-outline-light btn-sm">Вход</a>
-        <a href="/register" class="btn btn-outline-light btn-sm">Регистрация</a>
+        <a href="{{ url_for('login') }}" class="btn btn-outline-light btn-sm me-2">Вход</a>
+        <a href="{{ url_for('register') }}" class="btn btn-outline-light btn-sm">Регистрация</a>
       {% endif %}
     </div>
   </div>
 </nav>
+
 <div class="container py-4">
     {% block content %}{% endblock %}
 </div>
