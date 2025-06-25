@@ -177,7 +177,6 @@ def edit_vacancy(id):
 
     conn.close()
     return render_template('edit_vacancy.html', vacancy=vacancy)
-flash("Вакансия обновлена", "success")
 @app.route('/vacancy/<int:id>/delete', methods=['POST'])
 def delete_vacancy(id):
     if 'user' not in session or session['user']['role'] != 'работодатель':
@@ -187,7 +186,6 @@ def delete_vacancy(id):
     conn.commit()
     conn.close()
     return redirect(url_for('profile'))
-flash("Вакансия удалена", "success")
 
 @app.route('/ready/<int:vacancy_id>')
 def ready_to_work(vacancy_id):
@@ -202,7 +200,6 @@ def ready_to_work(vacancy_id):
         conn.commit()
     conn.close()
     return redirect(url_for('index'))
-flash("Работодатель уведомлен", "info")
 @app.route('/user/<int:user_id>')
 def view_user(user_id):
     conn = get_db()
