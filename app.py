@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory
 from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3, os
 
 app = Flask(__name__)
@@ -50,13 +51,13 @@ def register():
             os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
             photo.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         try:
+            hashed_password = generate_password_hash(data['password'])
             conn = get_db()
             conn.execute(
                 "INSERT INTO users (first_name, last_name, age, gender, role, location, salary, email, password, photo) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 (data['first_name'], data['last_name'], data['age'], data['gender'], data['role'],
-                 data.get('location'), data.get('salary'), data['email'], data['password'], filename))
+                 data.get('location'), data.get('salary'), data['email'], hashed_password, filename))
             conn.commit()
-            # Получаем пользователя из БД и сразу логиним
             user = conn.execute("SELECT * FROM users WHERE email = ?", (data['email'],)).fetchone()
             conn.close()
             session['user'] = dict(user)
@@ -74,10 +75,9 @@ def login():
     error = None
     if request.method == 'POST':
         conn = get_db()
-        user = conn.execute('SELECT * FROM users WHERE email = ? AND password = ?',
-                            (request.form['email'], request.form['password'])).fetchone()
+        user = conn.execute('SELECT * FROM users WHERE email = ?', (request.form['email'],)).fetchone()
         conn.close()
-        if user:
+        if user and check_password_hash(user['password'], request.form['password']):
             session['user'] = dict(user)
             return redirect(url_for('profile'))
         else:
@@ -116,7 +116,6 @@ def profile():
     conn.close()
     return render_template('profile.html', user=session['user'], applications=applications)
 
-
 @app.route('/add-vacancy', methods=['GET', 'POST'])
 def add_vacancy():
     if 'user' not in session or session['user']['role'] != 'работодатель':
@@ -154,6 +153,7 @@ def chat(receiver_id):
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
 @app.route('/vacancy/<int:id>/edit', methods=['GET', 'POST'])
 def edit_vacancy(id):
     if 'user' not in session or session['user']['role'] != 'работодатель':
@@ -177,6 +177,7 @@ def edit_vacancy(id):
 
     conn.close()
     return render_template('edit_vacancy.html', vacancy=vacancy)
+
 @app.route('/vacancy/<int:id>/delete', methods=['POST'])
 def delete_vacancy(id):
     if 'user' not in session or session['user']['role'] != 'работодатель':
@@ -200,6 +201,7 @@ def ready_to_work(vacancy_id):
         conn.commit()
     conn.close()
     return redirect(url_for('index'))
+
 @app.route('/user/<int:user_id>')
 def view_user(user_id):
     conn = get_db()
