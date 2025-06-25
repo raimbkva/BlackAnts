@@ -1,63 +1,72 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8">
-  <title>Профиль</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
-<div class="container py-5">
-  <h2 class="mb-4">Профиль {{ user.first_name }} {{ user.last_name }}</h2>
+{% extends "layout.html" %}
+{% block title %}Профиль — {{ user.first_name }}{% endblock %}
 
-  {% if user.photo %}
-    <img src="{{ url_for('uploaded_file', filename=user.photo) }}" class="rounded mb-3" height="100">
-  {% endif %}
+{% block content %}
+<h2 class="mb-4">Профиль {{ user.first_name }} {{ user.last_name }}</h2>
 
-  <div class="mb-3">
-    <p><strong>Email:</strong> {{ user.email }}</p>
-    <p><strong>Город:</strong> {{ user.location }}</p>
-    <p><strong>Зарплата:</strong> {{ user.salary }}</p>
-    <p><strong>Возраст:</strong> {{ user.age }}</p>
-    <p><strong>Пол:</strong> {{ user.gender }}</p>
-    <p><strong>Роль:</strong> {{ user.role }}</p>
+<div class="row mb-4">
+  <div class="col-md-4">
+    {% if user.photo %}
+      <img src="{{ url_for('uploaded_file', filename=user.photo) }}" alt="Фото" class="img-fluid rounded mb-3">
+    {% else %}
+      <img src="{{ url_for('static', filename='default-user.png') }}" alt="Фото" class="img-fluid rounded mb-3">
+    {% endif %}
   </div>
-
-  <a href="{{ url_for('logout') }}" class="btn btn-danger mb-4">Выйти</a>
-
-  {% if user.role == 'работодатель' %}
-    <h4 class="mt-5">Мои вакансии</h4>
-    {% if applications %}
-      <div class="list-group">
-        {% for v in applications %}
-          <div class="list-group-item d-flex justify-content-between align-items-start">
-            <div>
-              <div class="fw-bold">{{ v.title }}</div>
-              <div>{{ v.location }} • {{ v.salary }} сом</div>
-            </div>
-            <div>
-              <a href="{{ url_for('edit_vacancy', id=v.id) }}" class="btn btn-sm btn-outline-primary">Редактировать</a>
-              <a href="{{ url_for('delete_vacancy', id=v.id) }}" class="btn btn-sm btn-outline-danger">Удалить</a>
-            </div>
-          </div>
-        {% endfor %}
-      </div>
-    {% else %}
-      <p class="text-muted">Вы пока не добавили вакансии.</p>
-    {% endif %}
-  {% else %}
-    <h4 class="mt-5">Мои отклики</h4>
-    {% if applications %}
-      <ul class="list-group">
-        {% for msg in applications %}
-          <li class="list-group-item">
-            <strong>{{ msg.timestamp }}:</strong> {{ msg.text }}
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p class="text-muted">Вы пока не откликались на вакансии.</p>
-    {% endif %}
-  {% endif %}
+  <div class="col-md-8">
+    <ul class="list-group list-group-flush">
+      <li class="list-group-item"><strong>Email:</strong> {{ user.email }}</li>
+      <li class="list-group-item"><strong>Город:</strong> {{ user.location or 'Не указан' }}</li>
+      <li class="list-group-item"><strong>Желаемая зарплата:</strong> {{ user.salary or 'Не указана' }}</li>
+      <li class="list-group-item"><strong>Возраст:</strong> {{ user.age or 'Не указан' }}</li>
+      <li class="list-group-item"><strong>Пол:</strong> {{ user.gender or 'Не указан' }}</li>
+      <li class="list-group-item"><strong>Роль:</strong> {{ user.role }}</li>
+    </ul>
+  </div>
 </div>
-</body>
-</html>
+
+{% if user.role == 'работодатель' %}
+  <a href="{{ url_for('add_vacancy') }}" class="btn btn-success mb-4">Добавить вакансию</a>
+  
+  <h3>Ваши вакансии</h3>
+  {% if vacancies %}
+    <div class="list-group mb-4">
+      {% for vac in vacancies %}
+        <div class="list-group-item d-flex justify-content-between align-items-start flex-wrap">
+          <div class="me-3 flex-grow-1">
+            <h5>{{ vac.title }} — {{ vac.salary }} сом</h5>
+            <p class="mb-1">{{ vac.description }}</p>
+            <small class="text-muted">
+              Город: {{ vac.location }} | Тип: {{ vac.job_type }} | Оплата: {{ vac.payment_type }}
+            </small>
+          </div>
+          <div class="btn-group btn-group-sm mt-2 mt-md-0" role="group" aria-label="Вакансия действия">
+            <a href="{{ url_for('edit_vacancy', id=vac.id) }}" class="btn btn-outline-primary">Редактировать</a>
+            <form action="{{ url_for('delete_vacancy', id=vac.id) }}" method="POST" onsubmit="return confirm('Удалить вакансию?');">
+              <button type="submit" class="btn btn-outline-danger">Удалить</button>
+            </form>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p>У вас пока нет вакансий.</p>
+  {% endif %}
+{% else %}
+  <h3>Ваши отклики / сообщения</h3>
+  {% if applications %}
+    <ul class="list-group">
+      {% for app in applications %}
+        <li class="list-group-item">
+          {{ app.text }} <br>
+          <small class="text-muted">{{ app.timestamp }}</small>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>У вас пока нет сообщений или откликов.</p>
+  {% endif %}
+{% endif %}
+
+<a href="{{ url_for('index') }}" class="btn btn-primary mt-4">Вернуться к вакансиям</a>
+
+{% endblock %}
