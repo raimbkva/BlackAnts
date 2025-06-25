@@ -1,65 +1,63 @@
-{% extends "layout.html" %}
-{% block title %}Профиль — BlackAnts{% endblock %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Профиль</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+<div class="container py-5">
+  <h2 class="mb-4">Профиль {{ user.first_name }} {{ user.last_name }}</h2>
 
-{% block content %}
-<div class="row">
-  <!-- Левая колонка: информация о пользователе -->
-  <div class="col-md-4">
-    <div class="card mb-4 text-center">
-      <div class="card-body">
-        {% if user.photo %}
-          <img src="{{ url_for('uploaded_file', filename=user.photo) }}" class="rounded-circle mb-3" style="width: 120px; height: 120px; object-fit: cover;">
-        {% else %}
-          <div class="mb-3">Без фото</div>
-        {% endif %}
-        <h4>{{ user.first_name }} {{ user.last_name }}</h4>
-        <p class="text-muted">{{ user.role|title }}</p>
-        <a href="{{ url_for('logout') }}" class="btn btn-danger btn-sm mt-2">Выйти</a>
-      </div>
-    </div>
+  {% if user.photo %}
+    <img src="{{ url_for('uploaded_file', filename=user.photo) }}" class="rounded mb-3" height="100">
+  {% endif %}
+
+  <div class="mb-3">
+    <p><strong>Email:</strong> {{ user.email }}</p>
+    <p><strong>Город:</strong> {{ user.location }}</p>
+    <p><strong>Зарплата:</strong> {{ user.salary }}</p>
+    <p><strong>Возраст:</strong> {{ user.age }}</p>
+    <p><strong>Пол:</strong> {{ user.gender }}</p>
+    <p><strong>Роль:</strong> {{ user.role }}</p>
   </div>
 
-  <!-- Правая колонка: подробности и сообщения -->
-  <div class="col-md-8">
-    <div class="card mb-4">
-      <div class="card-body">
-        <p><strong>Email:</strong> {{ user.email }}</p>
-        <p><strong>Город:</strong> {{ user.location or '—' }}</p>
-        <p><strong>Желаемая зарплата:</strong> {{ user.salary or '—' }}</p>
-        <p><strong>Возраст:</strong> {{ user.age or '—' }}</p>
-        <p><strong>Пол:</strong> {{ user.gender }}</p>
-      </div>
-    </div>
+  <a href="{{ url_for('logout') }}" class="btn btn-danger mb-4">Выйти</a>
 
+  {% if user.role == 'работодатель' %}
+    <h4 class="mt-5">Мои вакансии</h4>
     {% if applications %}
-      <div class="card">
-        <div class="card-header">
-          <strong>Сообщения</strong>
-        </div>
-        <ul class="list-group list-group-flush">
-          {% for m in applications %}
-            <li class="list-group-item">
-              <div class="d-flex justify-content-between align-items-start">
-                <div>
-                  {% if user.role == 'работодатель' %}
-                    <p class="mb-1"><strong>От:</strong> {{ m.first_name }} {{ m.last_name }}</p>
-                  {% else %}
-                    <p class="mb-1"><strong>Кому:</strong> {{ m.first_name }} {{ m.last_name }}</p>
-                  {% endif %}
-                  <p class="mb-1">{{ m.text }}</p>
-                  <small class="text-muted">{{ m.timestamp }}</small>
-                </div>
-                <div>
-                  <a href="{{ url_for('chat', receiver_id=m.sender_id if user.role == 'работодатель' else m.receiver_id) }}" class="btn btn-sm btn-outline-primary">Открыть чат</a>
-                </div>
-              </div>
-            </li>
-          {% endfor %}
-        </ul>
+      <div class="list-group">
+        {% for v in applications %}
+          <div class="list-group-item d-flex justify-content-between align-items-start">
+            <div>
+              <div class="fw-bold">{{ v.title }}</div>
+              <div>{{ v.location }} • {{ v.salary }} сом</div>
+            </div>
+            <div>
+              <a href="{{ url_for('edit_vacancy', id=v.id) }}" class="btn btn-sm btn-outline-primary">Редактировать</a>
+              <a href="{{ url_for('delete_vacancy', id=v.id) }}" class="btn btn-sm btn-outline-danger">Удалить</a>
+            </div>
+          </div>
+        {% endfor %}
       </div>
     {% else %}
-      <div class="alert alert-info">Пока сообщений нет.</div>
+      <p class="text-muted">Вы пока не добавили вакансии.</p>
     {% endif %}
-  </div>
+  {% else %}
+    <h4 class="mt-5">Мои отклики</h4>
+    {% if applications %}
+      <ul class="list-group">
+        {% for msg in applications %}
+          <li class="list-group-item">
+            <strong>{{ msg.timestamp }}:</strong> {{ msg.text }}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="text-muted">Вы пока не откликались на вакансии.</p>
+    {% endif %}
+  {% endif %}
 </div>
-{% endblock %}
+</body>
+</html>

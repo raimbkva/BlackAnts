@@ -154,6 +154,60 @@ def chat(receiver_id):
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+@app.route('/vacancy/<int:id>/edit', methods=['GET', 'POST'])
+def edit_vacancy(id):
+    if 'user' not in session or session['user']['role'] != 'работодатель':
+        return redirect(url_for('login'))
+
+    conn = get_db()
+    vacancy = conn.execute("SELECT * FROM vacancies WHERE id = ? AND user_id = ?", (id, session['user']['id'])).fetchone()
+    if not vacancy:
+        conn.close()
+        return "Вакансия не найдена", 404
+
+    if request.method == 'POST':
+        data = request.form
+        conn.execute("""
+            UPDATE vacancies SET title=?, description=?, job_type=?, payment_type=?, location=?, salary=? 
+            WHERE id=?
+        """, (data['title'], data['description'], data['job_type'], data['payment_type'], data['location'], data['salary'], id))
+        conn.commit()
+        conn.close()
+        return redirect(url_for('profile'))
+
+    conn.close()
+    return render_template('edit_vacancy.html', vacancy=vacancy)
+@app.route('/vacancy/<int:id>/delete')
+def delete_vacancy(id):
+    if 'user' not in session or session['user']['role'] != 'работодатель':
+        return redirect(url_for('login'))
+    conn = get_db()
+    conn.execute("DELETE FROM vacancies WHERE id = ? AND user_id = ?", (id, session['user']['id']))
+    conn.commit()
+    conn.close()
+    return redirect(url_for('profile'))
+@app.route('/ready/<int:vacancy_id>')
+def ready_to_work(vacancy_id):
+    if 'user' not in session or session['user']['role'] != 'соискатель':
+        return redirect(url_for('login'))
+
+    conn = get_db()
+    vacancy = conn.execute("SELECT user_id FROM vacancies WHERE id = ?", (vacancy_id,)).fetchone()
+    if vacancy:
+        conn.execute("INSERT INTO messages (sender_id, receiver_id, text) VALUES (?, ?, ?)",
+                     (session['user']['id'], vacancy['user_id'], "Готов работать по вашей вакансии!"))
+        conn.commit()
+    conn.close()
+    return redirect(url_for('index'))
+@app.route('/user/<int:user_id>')
+def view_user(user_id):
+    conn = get_db()
+    user = conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+    vacancies = conn.execute("SELECT * FROM vacancies WHERE user_id = ?", (user_id,)).fetchall()
+    conn.close()
+    if not user:
+        return "Пользователь не найден", 404
+    return render_template("public_profile.html", user=user, vacancies=vacancies)
 
 if __name__ == '__main__':
     app.run(debug=True)
