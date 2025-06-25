@@ -47,7 +47,7 @@ def register():
         filename = None
         if photo and allowed_file(photo.filename):
             filename = secure_filename(photo.filename)
-            os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)  # Создать папку, если нет
+            os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
             photo.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         try:
             conn = get_db()
@@ -56,8 +56,11 @@ def register():
                 (data['first_name'], data['last_name'], data['age'], data['gender'], data['role'],
                  data.get('location'), data.get('salary'), data['email'], data['password'], filename))
             conn.commit()
+            # Получаем пользователя из БД и сразу логиним
+            user = conn.execute("SELECT * FROM users WHERE email = ?", (data['email'],)).fetchone()
             conn.close()
-            return redirect(url_for('login'))
+            session['user'] = dict(user)
+            return redirect(url_for('profile'))
         except sqlite3.IntegrityError:
             error = "Пользователь с таким email уже существует"
             return render_template('register.html', error=error)
